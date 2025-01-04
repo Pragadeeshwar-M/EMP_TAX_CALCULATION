@@ -1,0 +1,114 @@
+create or replace package emp_tax_pkg as
+
+procedure get_employee_details(emp_cursor OUT SYS_REFCURSOR);
+function wb_netpay_fn(p_salary NUMBER, P_BONUS INTEGER)
+RETURN NUMBER;
+
+end emp_tax_pkg;
+/
+
+create or replace package body emp_tax_pkg
+as
+
+function wb_netpay_fn(p_salary NUMBER, P_BONUS INTEGER)
+RETURN NUMBER
+AS
+V_EMP_ID NUMBER;
+V_FIRST_NAME VARCHAR2(30);
+V_LAST_NAME VARCHAR2(30);
+V_SALARY NUMBER;
+V_BONUS INTEGER;
+v_INCOME NUMBER;
+V_NET_PAY NUMBER;
+V_EDCS NUMBER;
+V_ZTL NUMBER:=3000;
+V_LTL NUMBER:=9999;
+V_UTL NUMBER:=48999;
+V_TSALARY NUMBER;
+V_CALTAX NUMBER;
+abort_ex exception;
+BEGIN
+SELECT emp_id,first_name, last_name into v_emp_id,v_first_name,v_last_name from wb_emp_tb where salary = p_salary and bonus = p_bonus;
+V_INCOME:= P_SALARY+P_BONUS;
+
+IF V_INCOME<=V_ZTL THEN
+RAISE abort_ex;
+END IF;
+
+V_TSALARY:= V_INCOME - V_ZTL;
+
+IF V_INCOME<V_LTL THEN
+V_CALTAX:=(0.9*V_TSALARY);
+END IF;
+
+IF V_INCOME BETWEEN V_LTL AND V_UTL THEN
+V_CALTAX:=(0.25*V_TSALARY);
+END IF;
+
+IF V_INCOME>V_UTL THEN
+V_CALTAX:= (25*V_UTL)+(0.42)*ABS((V_TSALARY-V_UTL));
+END IF;
+
+V_EDCS:=(0.2*V_CALTAX);
+V_NET_PAY:=P_SALARY+P_BONUS -(V_CALTAX+V_EDCS);
+
+
+RETURN V_NET_PAY;
+EXCEPTION WHEN abort_ex
+THEN
+dbms_output.put_line('no tax');
+END wb_netpay_fn;
+
+
+---select * from wb_emp_tb
+
+----select wb_netpay_fn(10000,100) from wb_emp_tb;
+
+--SELECT wb_netpay_fn(8000,1200) AS net_pay FROM dual;
+
+PROCEDURE get_employee_details (
+    emp_cursor OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN emp_cursor FOR
+    SELECT first_name, last_name, salary, bonus, wb_netpay_fn(salary, bonus)
+    FROM wb_emp_tb;
+END get_employee_details;
+
+ end emp_tax_pkg;
+
+-----------------------------------------------------------
+
+declare
+v_net_pay number;
+begin
+v_net_pay:=emp_tax_pkg.wb_netpay_fn(8000,1200);
+dbms_output.put_line(v_net_pay);
+end;
+
+------------------------------------
+
+DECLARE
+    emp_cursor SYS_REFCURSOR;
+    v_first_name wb_emp_tb.first_name%TYPE;
+    v_last_name wb_emp_tb.last_name%TYPE;
+    v_salary wb_emp_tb.salary%TYPE;
+    v_bonus wb_emp_tb.bonus%TYPE;
+    v_netpay NUMBER;
+BEGIN
+    -- Call the procedure
+    emp_tax_pkg.get_employee_details(emp_cursor);
+
+    -- Fetch the results
+    LOOP
+        FETCH emp_cursor INTO v_first_name, v_last_name, v_salary, v_bonus, v_netpay;
+        EXIT WHEN emp_cursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('First Name: ' || v_first_name || ', Last Name: ' || v_last_name || 
+                             ', Salary: ' || v_salary || ', Bonus: ' || v_bonus || 
+                             ', Net Pay: ' || v_netpay);
+    END LOOP;
+
+    -- Close the cursor
+    CLOSE emp_cursor;
+END get_employee_details;
+
