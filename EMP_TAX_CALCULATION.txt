@@ -78,6 +78,7 @@ END get_employee_details;
  end emp_tax_pkg;
 
 -----------------------------------------------------------
+-- function calling
 
 declare
 v_net_pay number;
@@ -87,6 +88,7 @@ dbms_output.put_line(v_net_pay);
 end;
 
 ------------------------------------
+-- procedure calling
 
 DECLARE
     emp_cursor SYS_REFCURSOR;
