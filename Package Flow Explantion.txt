@@ -1,0 +1,17 @@
+# Employee Tax and Net Pay Calculation Package
+
+This project is an Oracle PL/SQL package designed to retrieve and manage empployee tax calculation from the HR schema. 
+
+This project contains an Oracle PL/SQL package named emp_tax_pkg designed for calculating the net pay for employees based on their salary and bonus. The package provides two main functionalities:
+
+wb_netpay_fn: A function that calculates the net pay after deducting tax and other expenses.
+get_employee_details: A procedure that retrieves employee details from the wb_emp_tb table along with the calculated net pay.
+
+Features
+Net Pay Calculation: Based on an employee’s salary and bonus, the wb_netpay_fn function calculates the net pay, applying tax and deductions as per the defined rules.
+Cursor-based Data Retrieval: The get_employee_details procedure retrieves employee information, including the net pay, and returns it via a SYS_REFCURSOR.
+Exception Handling: The function includes exception handling for cases where the income is below a certain threshold, avoiding tax calculation.
+
+Files Included
+emp_tax_pkg.sql: Contains the package specification and package body for the emp_tax_pkg.
+emp_tax_pkg_usage.sql: A sample script to demonstrate how to use the package and fetch employee details along with net pay.
